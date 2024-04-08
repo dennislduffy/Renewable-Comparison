@@ -1,0 +1,43 @@
+---
+title: "Renewable Comparison"
+output: html_notebook
+---
+
+```{r, echo = FALSE}
+
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(downloadthis)
+library(janitor)
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
