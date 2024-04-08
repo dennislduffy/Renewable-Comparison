@@ -1,9 +1,11 @@
 ---
 title: "Renewable Comparison"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 
 library(tidyverse)
 library(httr)
@@ -69,7 +71,10 @@ p <- total_renewable_gen |>
   ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"), 
-        axis.text.y = element_text(size = 6))
+        axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Renewable Generation by State") + 
+  labs(caption = "Source: Energy Information Administration")
 
 p
 
@@ -89,7 +94,87 @@ suppressMessages(
 &nbsp;
 &nbsp;
 
+Minnesota compared to top 15 states for renewable generation
+
+```{r, echo = FALSE}
+
+color_palette <- c("Minnesota" = "#78BE21", "Other" = "#003865")
+
+p <- total_renewable_gen |> 
+  arrange(desc(total_renewables)) |> 
+  ungroup() |> 
+  slice(1:15) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
+  geom_col(width = .8, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        #axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Renewable Generation by State - Top 15") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Renewable Generation Rank - Top 15", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+
+
+&nbsp;
+&nbsp;
+
 Minnesota compared to its immediate neighbors
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  filter(location %in% c("MN", "WI", "SD", "ND", "IA")) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
+  geom_col(show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Renewable Generation by State") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Renewable Generation Rank - MN Neighbors", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+
 
 
 
