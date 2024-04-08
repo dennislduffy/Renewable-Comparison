@@ -11,14 +11,48 @@ library(jsonlite)
 library(downloadthis)
 library(janitor)
 
+api_key <- read_file("api_key.txt")
 
+first_chunk <- "https://api.eia.gov/v2/electricity/electric-power-operational-data/data/?api_key="
 
+second_chunk <- "&frequency=annual&data[0]=generation&facets[location][]=AK&facets[location][]=AL&facets[location][]=AR&facets[location][]=AZ&facets[location][]=CA&facets[location][]=CO&facets[location][]=CT&facets[location][]=DE&facets[location][]=FL&facets[location][]=GA&facets[location][]=HI&facets[location][]=IA&facets[location][]=ID&facets[location][]=IL&facets[location][]=IN&facets[location][]=KS&facets[location][]=KY&facets[location][]=LA&facets[location][]=MA&facets[location][]=MD&facets[location][]=ME&facets[location][]=MI&facets[location][]=MN&facets[location][]=MO&facets[location][]=MS&facets[location][]=MT&facets[location][]=NC&facets[location][]=ND&facets[location][]=NE&facets[location][]=NH&facets[location][]=NJ&facets[location][]=NM&facets[location][]=NV&facets[location][]=NY&facets[location][]=OH&facets[location][]=OK&facets[location][]=OR&facets[location][]=PA&facets[location][]=RI&facets[location][]=SC&facets[location][]=SD&facets[location][]=TN&facets[location][]=TX&facets[location][]=US&facets[location][]=UT&facets[location][]=VA&facets[location][]=VT&facets[location][]=WA&facets[location][]=WI&facets[location][]=WV&facets[location][]=WY&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000&facets[sectorid][]=99"
 
+link <- paste0(first_chunk, api_key, second_chunk)
+
+raw_gen <- GET(link)
+
+raw_gen <- fromJSON(rawToChar(raw_gen$content))
+
+generation_perc <- raw_gen$response$data |> 
+  tibble() |> 
+  clean_names() |> 
+  filter(fueltypeid %in% c("BIO", "HYC", "SUN", "WND",  "ALL", "AOR")) |> 
+  filter(period == "2023") |> 
+  arrange(location, fuel_type_description) |> 
+  mutate(generation = as.numeric(generation)) |> 
+  select(location, period, fuel_type_description, generation) |> 
+  pivot_wider(names_from = fuel_type_description, values_from = generation) |> 
+  mutate(total_renewables = `all renewables` + `conventional hydroelectric`) |> 
+  select(-c(`all renewables`)) |> 
+  mutate(across(c(4:8), .fns = ~. / `all fuels`))
+  
+total_renewable_gen <- raw_gen$response$data |> 
+  tibble() |> 
+  clean_names() |> 
+  filter(fueltypeid %in% c("BIO", "HYC", "SUN", "WND",  "ALL", "AOR")) |> 
+  filter(period == "2023") |> 
+  arrange(location, fuel_type_description) |> 
+  mutate(generation = as.numeric(generation)) |> 
+  select(location, period, fuel_type_description, generation) |> 
+  pivot_wider(names_from = fuel_type_description, values_from = generation) |> 
+  rowwise() |> 
+  mutate(total_renewables = sum(`all renewables`, `conventional hydroelectric`, na.rm = TRUE)) |> 
+  filter(location != "US")
 
 
 ```
 
-
+MN rank in terms of total renewable generation (including hydro)
 
 
 
