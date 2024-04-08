@@ -54,7 +54,42 @@ total_renewable_gen <- raw_gen$response$data |>
 
 MN rank in terms of total renewable generation (including hydro)
 
+```{r, echo = FALSE}
 
+color_palette <- c("Minnesota" = "#78BE21", "Other" = "#003865")
+
+p <- total_renewable_gen |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
+  geom_col(width = .5, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(size = 6))
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Renewable Generation Rank", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+&nbsp;
+&nbsp;
+
+Minnesota compared to its immediate neighbors
 
 
 
