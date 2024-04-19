@@ -12,6 +12,10 @@ library(httr)
 library(jsonlite)
 library(downloadthis)
 library(janitor)
+library(tidycensus)
+library(rvest)
+
+options(scipen = 999)
 
 api_key <- read_file("api_key.txt")
 
@@ -427,6 +431,68 @@ suppressMessages(
 
 ```
 
+&nbsp;
+&nbsp;
+
+Renewable generation per-capita
+
+```{r, echo = FALSE}
+
+x <- load_variables(2021, dataset = "acs5", cache = TRUE)
+
+state_pops <- suppressMessages(get_acs(geography = "state", 
+        variables = "B01003_001", 
+        year = 2022, 
+        survey = "acs1") |> 
+  select(NAME, estimate))
+
+#grab state abbreviations
+
+url <- "https://www.ssa.gov/international/coc-docs/states.html"
+
+p <- read_html(url) |> 
+  html_table() |> 
+  pluck(1) |> 
+  rename(state = 1, 
+         abbr = 2) |> 
+  mutate(state = str_to_title(state)) |> 
+  left_join(total_renewable_gen, by = c("abbr" = "location")) |> 
+  left_join(state_pops, by = c("state" = "NAME")) |> 
+  select(abbr, total_renewables, estimate) |> 
+  filter(complete.cases(estimate, total_renewables)) |> 
+  mutate(per_cap = (total_renewables * 1000) / estimate) |> #convert to megawatts for MW per capita
+  arrange(desc(per_cap)) |> 
+  mutate(state_color = case_when(
+    abbr == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  rename(location = abbr) |> 
+  ggplot() + aes(y = fct_reorder(location, per_cap), x = per_cap, fill = state_color) + 
+  geom_col(width = .5, show.legend = FALSE) +
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Megawatt Hours Generated Per Capita") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Renewable Generation Per Capita (2023)") + 
+  labs(caption = "Source: Energy Information Administration, U.S. Census Bureau")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Renewable Generation Per Capita", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
 
 
 
