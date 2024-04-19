@@ -68,12 +68,12 @@ p <- total_renewable_gen |>
   ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
   geom_col(width = .5, show.legend = FALSE) + 
   scale_fill_manual(values = color_palette) + 
-  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"), 
         axis.text.y = element_text(size = 6), 
         axis.title.y = element_blank()) + 
-  ggtitle("Renewable Generation by State") + 
+  ggtitle("Renewable Generation by State (2023)") + 
   labs(caption = "Source: Energy Information Administration")
 
 p
@@ -111,12 +111,12 @@ p <- total_renewable_gen |>
   ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
   geom_col(width = .8, show.legend = FALSE) + 
   scale_fill_manual(values = color_palette) + 
-  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"), 
         #axis.text.y = element_text(size = 6), 
         axis.title.y = element_blank()) + 
-  ggtitle("Renewable Generation by State - Top 15") + 
+  ggtitle("Renewable Generation by State - Top 15 (2023)") + 
   labs(caption = "Source: Energy Information Administration")
 
 p
@@ -152,11 +152,11 @@ p <- total_renewable_gen |>
   ggplot() + aes(y = fct_reorder(location, total_renewables), x = total_renewables, fill = state_color) + 
   geom_col(show.legend = FALSE) + 
   scale_fill_manual(values = color_palette) + 
-  ylab("State") + xlab("Total Renewable Generation (Gigawatt Hours)") + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"), 
         axis.title.y = element_blank()) + 
-  ggtitle("Renewable Generation by State") + 
+  ggtitle("Renewable Generation by State (2023)") + 
   labs(caption = "Source: Energy Information Administration")
 
 p
@@ -174,12 +174,258 @@ suppressMessages(
 )
 
 ```
+&nbsp;
+&nbsp;
+
+MN wind rank (all states)
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  ), 
+  wind = case_when(
+    is.na(wind) == TRUE ~ 0, 
+    TRUE ~ wind
+  )) |> 
+  ggplot() + aes(y = fct_reorder(as_factor(location), wind), x = wind, fill = state_color) + 
+  geom_col(width = .5, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Wind Generation by State (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Wind Generation Rank", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+
+&nbsp;
+&nbsp;
+
+Wind generation compared to other states (top 15)
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  arrange(desc(wind)) |> 
+  ungroup() |> 
+  slice(1:15) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, wind), x = wind, fill = state_color) + 
+  geom_col(width = .8, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        #axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Wind Generation by State - Top 15 (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Wind Generation Rank - Top 15", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
 
 
+```
+&nbsp;
+&nbsp;
+
+Wind generation compared to neighbor states
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  filter(location %in% c("MN", "WI", "SD", "ND", "IA")) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, wind), x = wind, fill = state_color) + 
+  geom_col(show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Wind Generation by State (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Wind Generation Rank - MN Neighbors", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+
+&nbsp;
+&nbsp;
+
+MN solar rank (all states)
 
 
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  ), 
+  solar = case_when(
+    is.na(solar) == TRUE ~ 0, 
+    TRUE ~ solar
+  )) |> 
+  ggplot() + aes(y = fct_reorder(as_factor(location), solar), x = solar, fill = state_color) + 
+  geom_col(width = .5, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Solar Generation by State (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Solar Generation Rank", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
+&nbsp;
+&nbsp;
+
+Solar generation compared to other states (top 15)
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  arrange(desc(solar)) |> 
+  ungroup() |> 
+  slice(1:15) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, solar), x = solar, fill = state_color) + 
+  geom_col(width = .8, show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        #axis.text.y = element_text(size = 6), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Solar Generation by State - Top 15 (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Solar Generation Rank - Top 15", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
 
 
+```
+
+&nbsp;
+&nbsp;
+
+Wind generation compared to neighbor states
+
+```{r, echo = FALSE}
+
+p <- total_renewable_gen |> 
+  filter(location %in% c("MN", "WI", "SD", "ND", "IA")) |> 
+  mutate(state_color = case_when(
+    location == "MN" ~ "Minnesota", 
+    TRUE ~ "Other"
+  ), 
+  solar = case_when(
+    is.na(solar) == TRUE ~ 0, 
+    TRUE ~ solar
+  )) |> 
+  ggplot() + aes(y = fct_reorder(location, solar), x = solar, fill = state_color) + 
+  geom_col(show.legend = FALSE) + 
+  scale_fill_manual(values = color_palette) + 
+  ylab("State") + xlab("Net Generation (Gigawatt Hours)") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), 
+        axis.title.y = element_blank()) + 
+  ggtitle("Solar Generation by State (2023)") + 
+  labs(caption = "Source: Energy Information Administration")
+
+p
+
+suppressMessages(
+  p |> 
+  download_this(
+    output_name = "Solar Generation Rank - MN Neighbors", 
+    output_extension = ".png", 
+    button_label = "Download Plot",
+    button_type = "success", 
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+)
+
+```
 
 
 
